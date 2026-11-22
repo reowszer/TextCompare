@@ -6,6 +6,7 @@
   <title>Text Compare</title>
   <link rel="stylesheet" href="style.css">
   <script defer src="diff.js"></script>
+  <script defer src="merge.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -15,6 +16,8 @@
       <div class="actions">
         <button id="swap" type="button">Swap sides</button>
         <button id="clear" type="button">Clear</button>
+        <button id="start-merge" type="button">Merge drafts</button>
+        <button id="exit-merge" type="button" hidden>Compare mode</button>
         <button id="compare" class="primary" type="button" title="Compare with Cmd or Ctrl + Enter">Compare</button>
         <button id="edit" class="primary" type="button" hidden>Edit texts</button>
       </div>
@@ -22,8 +25,8 @@
 
     <section class="workspace" aria-label="Text comparison">
       <div class="options">
-        <label><input type="checkbox" id="ignore-case"> Ignore case</label>
-        <label><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
+        <label id="case-option"><input type="checkbox" id="ignore-case"> Ignore case</label>
+        <label id="space-option"><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
         <label><input type="checkbox" id="only-changes" disabled> Show changes only</label>
       </div>
 
@@ -55,6 +58,24 @@
           <button type="button" id="next">Next change</button>
         </div>
       </footer>
+      <section id="merge-panel" aria-labelledby="merge-title" hidden>
+        <div class="merge-controls">
+          <div class="actions">
+            <button id="keep-left" type="button" aria-pressed="false">Keep left</button>
+            <button id="keep-right" type="button" aria-pressed="false">Keep right</button>
+          </div>
+          <span id="merge-progress" role="status"></span>
+        </div>
+        <div class="pane-heading">
+          <label id="merge-title" for="merged-text">Merged draft</label>
+          <div class="actions">
+            <button id="copy-merge" type="button">Copy</button>
+            <button id="download-merge" type="button">Download text</button>
+          </div>
+        </div>
+        <textarea id="merged-text" readonly spellcheck="false"></textarea>
+        <p id="merge-message" role="status" hidden></p>
+      </section>
     </section>
   </main>
 </body>

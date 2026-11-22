@@ -41,6 +41,7 @@ textarea::placeholder { color: #60718c; }
 textarea:focus-visible { outline-offset: -2px; }
 .editor.drag textarea { background: #edf2ff; }
 #diff { overflow-y: auto; min-height: 12rem; max-height: 62vh; overscroll-behavior: contain; }
+.merge-results #diff { max-height: 42vh; }
 .diff-row { min-height: 1.75rem; border-bottom: 1px solid #edf0f5; font: .875rem/1.55 var(--mono); }
 .diff-cell { display: grid; grid-template-columns: 4ch minmax(0, 1fr); gap: .6rem; padding: .2rem .55rem; }
 .line-number { text-align: right; color: #465875; user-select: none; }
@@ -52,9 +53,18 @@ mark { color: inherit; border-radius: .18rem; }
 .removed mark { background: #ffabb8; }
 .added mark { background: #99dfb8; }
 .current { outline: 2px solid #5875c4; outline-offset: -2px; }
+.diff-row[data-choice="left"] > :last-child,
+.diff-row[data-choice="right"] > :first-child { opacity: .55; }
+#merge-panel { border-top: 1px solid var(--border); }
+.merge-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem 1rem; padding: .7rem 1rem; }
+.merge-controls button[aria-pressed="true"] { border-color: var(--blue); background: #eef2fd; }
+#merged-text { height: clamp(8rem, 24vh, 18rem); resize: vertical; }
+#merge-progress, #merge-message { color: var(--muted); font-size: .875rem; }
+#merge-message { margin: 0; padding: .5rem 1rem; }
 footer { min-height: 3.4rem; padding: .6rem 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
 #status, #change-position { font-size: .875rem; color: var(--muted); }
 #navigation { flex-wrap: wrap; }
+.masthead .actions, #merge-panel .pane-heading .actions { flex-wrap: wrap; }
 @media (max-width: 530px) {
   .pane-heading { padding-inline: .45rem; }
   .pane-heading small { display: none; }
