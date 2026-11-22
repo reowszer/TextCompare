@@ -53,7 +53,8 @@ mark { color: inherit; border-radius: .18rem; }
 .added mark { background: #99dfb8; }
 .current { outline: 2px solid #5875c4; outline-offset: -2px; }
 footer { min-height: 3.4rem; padding: .6rem 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
-#status { font-size: .875rem; color: var(--muted); }
+#status, #change-position { font-size: .875rem; color: var(--muted); }
+#navigation { flex-wrap: wrap; }
 @media (max-width: 530px) {
   .pane-heading { padding-inline: .45rem; }
   .pane-heading small { display: none; }
