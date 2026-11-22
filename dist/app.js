@@ -61,6 +61,7 @@ function cell(line, color, segments) {
 }
 
 function compareDrafts() {
+  get('file-error').textContent = '';
   compared = { left: left.value, right: right.value };
   render();
 }
@@ -227,6 +228,7 @@ get('clear').onclick = () => {
   onlyChanges.disabled = true;
   get('navigation').hidden = true;
   get('status').textContent = 'Paste two texts to compare.';
+  get('file-error').textContent = '';
   updateMode();
   updatePending();
   left.focus();
@@ -241,18 +243,16 @@ async function loadFile(target, file) {
   if (!file) return;
   const request = Symbol();
   pendingFiles.set(target, request);
+  const errorStatus = get('file-error');
+  errorStatus.textContent = '';
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    const content = await readFileText(file);
     if (pendingFiles.get(target) !== request) return;
-    const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? 'utf-16le'
-      : bytes[0] === 0xfe && bytes[1] === 0xff ? 'utf-16be' : 'utf-8';
-    const content = new TextDecoder(encoding, { fatal: true }).decode(bytes);
-    if (content.includes('\0')) throw new Error('Binary file');
     target.value = content;
     updatePending();
-  } catch {
+  } catch (error) {
     if (pendingFiles.get(target) === request) {
-      get('status').textContent = 'Unable to read ' + file.name + ' as UTF-8 or UTF-16 text.';
+      errorStatus.textContent = 'Could not open ' + file.name + '. ' + error.message;
     }
   } finally {
     if (pendingFiles.get(target) === request) pendingFiles.delete(target);
@@ -267,8 +267,9 @@ for (const target of [left, right]) {
   const picker = get(target.id + '-file');
   document.querySelector('[data-open="' + target.id + '"]').onclick = () => picker.click();
   picker.onchange = () => {
-    loadFile(target, picker.files[0]);
+    const file = picker.files[0];
     picker.value = '';
+    return loadFile(target, file);
   };
   const pane = target.closest('.editor');
   pane.ondragover = event => {
@@ -284,7 +285,7 @@ for (const target of [left, right]) {
     const file = event.dataTransfer.files[0];
     if (!file) return;
     event.preventDefault();
-    loadFile(target, file);
+    return loadFile(target, file);
   };
 }
 

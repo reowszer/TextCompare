@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <script defer src="diff.js"></script>
   <script defer src="merge.js"></script>
+  <script defer src="vendor/office-oxide.js"></script>
+  <script defer src="import.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -43,6 +45,7 @@
           <div>
             <span id="status" role="status">Paste two texts to compare.</span>
             <span id="pending" role="status"></span>
+            <span id="file-error" role="status"></span>
           </div>
           <div id="navigation" class="actions" hidden>
             <button type="button" id="previous">Previous change</button>
@@ -55,12 +58,12 @@
       <div id="editors" class="columns">
         <section class="editor">
           <div class="pane-heading"><label for="left">Original <small>LHS</small></label><button type="button" data-open="left">Open file</button></div>
-          <textarea id="left" placeholder="Paste, type, or drop a text file…" spellcheck="false" autocapitalize="off"></textarea>
+          <textarea id="left" placeholder="Paste text or drop a file…" spellcheck="false" autocapitalize="off"></textarea>
           <input type="file" id="left-file" hidden>
         </section>
         <section class="editor">
           <div class="pane-heading"><label for="right">Revised <small>RHS</small></label><button type="button" data-open="right">Open file</button></div>
-          <textarea id="right" placeholder="Paste, type, or drop a text file…" spellcheck="false" autocapitalize="off"></textarea>
+          <textarea id="right" placeholder="Paste text or drop a file…" spellcheck="false" autocapitalize="off"></textarea>
           <input type="file" id="right-file" hidden>
         </section>
       </div>

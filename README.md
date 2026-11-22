@@ -26,11 +26,22 @@ If needed, add the `export` line to `~/.zshrc` for new terminals. Keep the proje
 
 ## Compare
 
-1. Paste text into the two lower editors, or open or drop a plain-text file on either side.
+1. Paste text into the two lower editors, or use **Open file** or drag and drop on either side.
 2. Click **Compare** or press **Cmd + Enter** on macOS (**Ctrl + Enter** elsewhere).
 3. Review the aligned diff and similarity score above. Use **Previous change**, **Next change**, or **Show changes only** to focus on edits.
 
 Keep editing below while the last result stays visible. Click **Compare** again to refresh it. **Ignore case** and **Ignore whitespace** also apply to the similarity score.
+
+### Supported files
+
+| Type | Files |
+| --- | --- |
+| Plain text | `.txt`, LaTeX (`.tex`), Markdown, CSV, TSV, logs, and source code |
+| Word | `.docx`, `.doc` (Word 97–2003) |
+| Excel | `.xlsx`, `.xls` |
+| PowerPoint | `.pptx`, `.ppt` |
+
+Office files open as editable plain text. Use unlocked files up to 32 MiB, with up to 128 MiB of expanded content for newer Office formats. Plain text supports UTF-8, UTF-16 with a BOM, and Windows-1252 for recognized text files.
 
 ## Merge
 

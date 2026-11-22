@@ -33,6 +33,7 @@ button.primary:hover { background: #192e68; }
 .comparison-status { min-height: 1.6rem; margin-top: .4rem; }
 #pending { color: #774706; }
 #pending:not(:empty)::before { content: ' · '; }
+#file-error { display: block; color: #a1253a; font-size: .875rem; overflow-wrap: anywhere; }
 input[type="checkbox"] { accent-color: var(--blue); width: 1rem; height: 1rem; margin: 0; }
 .columns, .diff-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .columns > :first-child, .diff-row > :first-child { border-right: 1px solid var(--border); }
