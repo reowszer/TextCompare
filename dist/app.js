@@ -11,6 +11,7 @@ let changeGroups = [];
 let selected = -1;
 let merging = false;
 let merge = null;
+let compared = null;
 
 function updateMode() {
   get('start-merge').hidden = merging;
@@ -19,20 +20,17 @@ function updateMode() {
   get('swap').disabled = merging;
   get('case-option').hidden = merging;
   get('space-option').hidden = merging;
-  get('results').classList.toggle('merge-results', merging);
 }
 
-function showEditor(focus = true) {
-  merging = false;
-  updateMode();
-  get('editors').hidden = false;
-  get('results').hidden = true;
-  get('compare').hidden = false;
-  get('edit').hidden = true;
-  onlyChanges.disabled = true;
-  get('navigation').hidden = true;
-  get('status').textContent = 'Paste two texts to compare.';
-  if (focus) left.focus();
+function hasPendingEdits() {
+  return compared !== null && (compared.left !== left.value || compared.right !== right.value);
+}
+
+function updatePending() {
+  const status = get('pending');
+  const message = hasPendingEdits() ? 'Drafts changed. Compare to refresh.' : '';
+  if (status.textContent !== message) status.textContent = message;
+  if (merging) updateMergeActions();
 }
 
 function cell(line, color, segments) {
@@ -62,14 +60,19 @@ function cell(line, color, segments) {
   return element;
 }
 
-function render(focus = false) {
+function compareDrafts() {
+  compared = { left: left.value, right: right.value };
+  render();
+}
+
+function render() {
   const ignoreCase = !merging && get('ignore-case').checked;
   const ignoreSpace = !merging && get('ignore-space').checked;
   const details = { approximate: false };
-  const rows = compareTexts(left.value, right.value, ignoreCase, ignoreSpace, details);
-  const sameDrafts = merge?.left === left.value && merge?.right === right.value;
+  const rows = compareTexts(compared.left, compared.right, ignoreCase, ignoreSpace, details);
+  const sameDrafts = merge?.left === compared.left && merge?.right === compared.right;
   const previous = merging && sameDrafts && !get('merge-panel').hidden ? selected : -1;
-  if (merging && !sameDrafts) merge = { left: left.value, right: right.value, blocks: mergeBlocks(rows) };
+  if (merging && !sameDrafts) merge = { ...compared, blocks: mergeBlocks(rows) };
   const blocks = merging ? merge.blocks : rows.map(row => ({ changed: row.type !== 'equal', rows: [row] }));
   const counts = { equal: 0, changed: 0, added: 0, removed: 0 };
   const score = similarity(rows, details);
@@ -95,10 +98,6 @@ function render(focus = false) {
   }
   diff.replaceChildren(elements);
   diff.scrollTop = 0;
-  get('editors').hidden = true;
-  get('results').hidden = false;
-  get('compare').hidden = true;
-  get('edit').hidden = false;
   onlyChanges.disabled = false;
   get('navigation').hidden = !changeGroups.length;
   get('change-position').textContent = '';
@@ -108,13 +107,13 @@ function render(focus = false) {
   const alignment = details.approximate ? ' · Approximate alignment' : '';
   get('status').textContent = score + ' similar · ' + summary + alignment;
   updateMode();
-  if (focus) diff.focus({ preventScroll: true });
   if (merging) {
     const unresolved = changeGroups.findIndex(group => !group.block.choice);
     const initial = previous >= 0 ? previous : Math.max(0, unresolved);
     if (changeGroups.length) selectChange(initial);
     updateMergePreview();
   }
+  updatePending();
 }
 
 function selectChange(index) {
@@ -122,7 +121,14 @@ function selectChange(index) {
   selected = index;
   const group = changeGroups[selected];
   for (const row of group.elements) row.classList.add('current');
-  group.elements[0].scrollIntoView({ block: 'nearest' });
+  const row = group.elements[0];
+  const top = row.offsetTop;
+  const bottom = top + row.offsetHeight;
+  if (top < diff.scrollTop) {
+    diff.scrollTop = top;
+  } else if (bottom > diff.scrollTop + diff.clientHeight) {
+    diff.scrollTop = Math.min(top, bottom - diff.clientHeight);
+  }
   const choice = group.block.choice;
   const decision = merging ? (choice ? ' · Kept ' + choice : ' · Choose a side') : '';
   get('change-position').textContent = 'Change ' + (selected + 1) + ' of ' + changeGroups.length + decision;
@@ -138,37 +144,47 @@ function navigate(direction) {
 }
 
 function updateMergePreview() {
-  const remaining = changeGroups.filter(group => !group.block.choice).length;
   mergedDraft.value = mergedText(merge.blocks);
-  get('merge-progress').textContent = remaining
-    ? remaining + (remaining === 1 ? ' choice' : ' choices') + ' left · Preview uses the left side until you choose'
-    : 'Merged draft is ready';
-  get('copy-merge').disabled = get('download-merge').disabled = remaining > 0;
-  get('keep-left').disabled = get('keep-right').disabled = !changeGroups.length;
   get('merge-message').textContent = '';
   get('merge-message').hidden = true;
 }
 
+function updateMergeActions() {
+  const pending = hasPendingEdits();
+  const remaining = changeGroups.filter(group => !group.block.choice).length;
+  const progress = get('merge-progress');
+  let message = 'Merged draft is ready';
+  if (pending) message = 'Preview of the last comparison';
+  else if (remaining) {
+    message = remaining + (remaining === 1 ? ' choice' : ' choices') + ' left · Preview uses the left side until you choose';
+  }
+  if (progress.textContent !== message) progress.textContent = message;
+  get('copy-merge').disabled = get('download-merge').disabled = pending || remaining > 0;
+  get('keep-left').disabled = get('keep-right').disabled = pending || !changeGroups.length;
+}
+
 function keepSide(side) {
   const group = changeGroups[selected];
-  if (!merging || !group) return;
+  if (!merging || !group || hasPendingEdits()) return;
   group.block.choice = side;
   for (const row of group.elements) row.dataset.choice = side;
   updateMergePreview();
+  updateMergeActions();
   const next = changeGroups.findIndex((item, index) => index > selected && !item.block.choice);
   const first = next < 0 ? changeGroups.findIndex(item => !item.block.choice) : next;
   selectChange(first < 0 ? selected : first);
 }
 
-get('compare').onclick = () => render(true);
-get('edit').onclick = () => showEditor();
+get('compare').onclick = compareDrafts;
 get('start-merge').onclick = () => {
   merging = true;
-  render(true);
+  compareDrafts();
+  diff.focus({ preventScroll: true });
 };
 get('exit-merge').onclick = () => {
   merging = false;
-  render(true);
+  render();
+  get('compare').focus({ preventScroll: true });
 };
 get('keep-left').onclick = () => keepSide('left');
 get('keep-right').onclick = () => keepSide('right');
@@ -197,17 +213,27 @@ get('next').onclick = () => navigate(1);
 get('swap').onclick = () => {
   pendingFiles.clear();
   [left.value, right.value] = [right.value, left.value];
-  if (!get('results').hidden) render();
+  if (compared) compareDrafts();
 };
 get('clear').onclick = () => {
   pendingFiles.clear();
+  compared = null;
   merge = null;
+  merging = false;
   left.value = right.value = '';
-  showEditor();
+  changeGroups = [];
+  selected = -1;
+  diff.replaceChildren();
+  onlyChanges.disabled = true;
+  get('navigation').hidden = true;
+  get('status').textContent = 'Paste two texts to compare.';
+  updateMode();
+  updatePending();
+  left.focus();
 };
 for (const option of [onlyChanges, get('ignore-case'), get('ignore-space')]) {
   option.onchange = () => {
-    if (!get('results').hidden) render();
+    if (compared) render();
   };
 }
 
@@ -223,11 +249,7 @@ async function loadFile(target, file) {
     const content = new TextDecoder(encoding, { fatal: true }).decode(bytes);
     if (content.includes('\0')) throw new Error('Binary file');
     target.value = content;
-    if (get('results').hidden) {
-      showEditor(false);
-    } else {
-      render();
-    }
+    updatePending();
   } catch {
     if (pendingFiles.get(target) === request) {
       get('status').textContent = 'Unable to read ' + file.name + ' as UTF-8 or UTF-16 text.';
@@ -238,7 +260,10 @@ async function loadFile(target, file) {
 }
 
 for (const target of [left, right]) {
-  target.oninput = () => pendingFiles.delete(target);
+  target.oninput = () => {
+    pendingFiles.delete(target);
+    updatePending();
+  };
   const picker = get(target.id + '-file');
   document.querySelector('[data-open="' + target.id + '"]').onclick = () => picker.click();
   picker.onchange = () => {
@@ -267,7 +292,7 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) ||
       event.ctrlKey && event.altKey && event.code === 'KeyC') {
     event.preventDefault();
-    render(true);
+    compareDrafts();
   } else if (event.ctrlKey && event.altKey && event.code === 'KeyS') {
     event.preventDefault();
     get('swap').click();

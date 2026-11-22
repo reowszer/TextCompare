@@ -13,21 +13,43 @@
   <main>
     <header class="masthead">
       <h1>Text Compare</h1>
-      <div class="actions">
-        <button id="swap" type="button">Swap sides</button>
-        <button id="clear" type="button">Clear</button>
-        <button id="start-merge" type="button">Merge drafts</button>
-        <button id="exit-merge" type="button" hidden>Compare mode</button>
-        <button id="compare" class="primary" type="button" title="Compare with Cmd or Ctrl + Enter">Compare</button>
-        <button id="edit" class="primary" type="button" hidden>Edit texts</button>
-      </div>
     </header>
 
     <section class="workspace" aria-label="Text comparison">
-      <div class="options">
-        <label id="case-option"><input type="checkbox" id="ignore-case"> Ignore case</label>
-        <label id="space-option"><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
-        <label><input type="checkbox" id="only-changes" disabled> Show changes only</label>
+      <div id="results">
+        <div class="columns result-headings">
+          <div class="pane-heading">Original diff</div>
+          <div class="pane-heading">Revised diff</div>
+        </div>
+        <div id="diff" tabindex="0" role="region" aria-label="Aligned diff rows"></div>
+      </div>
+
+      <div class="comparison-toolbar" role="group" aria-label="Comparison controls">
+        <div class="toolbar-row">
+          <div class="actions">
+            <button id="compare" class="primary" type="button" title="Compare with Cmd or Ctrl + Enter">Compare</button>
+            <button id="swap" type="button">Swap sides</button>
+            <button id="clear" type="button">Clear</button>
+            <button id="start-merge" type="button">Merge drafts</button>
+            <button id="exit-merge" type="button" hidden>Compare mode</button>
+          </div>
+          <div class="options">
+            <label id="case-option"><input type="checkbox" id="ignore-case"> Ignore case</label>
+            <label id="space-option"><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
+            <label><input type="checkbox" id="only-changes" disabled> Show changes only</label>
+          </div>
+        </div>
+        <div class="toolbar-row comparison-status">
+          <div>
+            <span id="status" role="status">Paste two texts to compare.</span>
+            <span id="pending" role="status"></span>
+          </div>
+          <div id="navigation" class="actions" hidden>
+            <button type="button" id="previous">Previous change</button>
+            <span id="change-position" role="status"></span>
+            <button type="button" id="next">Next change</button>
+          </div>
+        </div>
       </div>
 
       <div id="editors" class="columns">
@@ -43,21 +65,6 @@
         </section>
       </div>
 
-      <div id="results" hidden>
-        <div class="columns result-headings">
-          <div class="pane-heading">Original <small>LHS</small></div>
-          <div class="pane-heading">Revised <small>RHS</small></div>
-        </div>
-        <div id="diff" tabindex="0" role="region" aria-label="Aligned diff rows"></div>
-      </div>
-      <footer>
-        <span id="status" role="status">Paste two texts to compare.</span>
-        <div id="navigation" class="actions" hidden>
-          <button type="button" id="previous">Previous change</button>
-          <span id="change-position" role="status"></span>
-          <button type="button" id="next">Next change</button>
-        </div>
-      </footer>
       <section id="merge-panel" aria-labelledby="merge-title" hidden>
         <div class="merge-controls">
           <div class="actions">
